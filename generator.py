@@ -35,5 +35,33 @@ def generate_response(query, retrieved_chunks):
             "Try rephrasing your question — or check that your ingestion pipeline is working."
         )
 
-    # Your implementation here.
-    return "⚙️ Response generation not yet implemented. Complete Milestone 3 to activate answers."
+    # --- Context formatting ---
+    # One self-contained block per chunk. The game label rides in the header so
+    # the model can cite the correct source, and the numbered delimiter keeps
+    # chunks visually separate so their rules don't blend. Distance scores are
+    # not passed to the model — relevance filtering happens in code.
+    context_blocks = []
+    for i, chunk in enumerate(retrieved_chunks, start=1):
+        context_blocks.append(
+            f"--- Source {i} (Game: {chunk['game']}) ---\n{chunk['text']}"
+        )
+    context = "\n\n".join(context_blocks)
+
+    system_prompt = (
+        "You ONLY use the retrieved rule text. NEVER use your general knowledge. "
+        "NEVER infer, guess, or add information not in the rules. "
+        'If the rules don\'t contain the answer, say: "I don\'t find that in the loaded rules."\n'
+        "When you answer, name which game (and source) the answer comes from."
+    )
+
+    user_message = f"Question: {query}\n\nRetrieved rules:\n{context}"
+
+    response = _client.chat.completions.create(
+        model=LLM_MODEL,
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_message},
+        ],
+    )
+
+    return response.choices[0].message.content
