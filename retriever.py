@@ -68,5 +68,25 @@ def retrieve(query, n_results=N_RESULTS):
     if _collection.count() == 0:
         return []
 
-    # Your implementation here.
-    return []
+    # Query the collection for similar chunks
+    results = _collection.query(
+        query_texts=[query],
+        n_results=n_results,
+        include=["documents", "metadatas", "distances"]
+    )
+    
+    # Unwrap the nested lists (index [0])
+    documents = results["documents"][0]
+    metadatas = results["metadatas"][0]
+    distances = results["distances"][0]
+    
+    # Build the return list of dicts with text, game, and distance
+    retrieved_chunks = []
+    for text, metadata, distance in zip(documents, metadatas, distances):
+        retrieved_chunks.append({
+            "text": text,
+            "game": metadata["game"],
+            "distance": distance
+        })
+    
+    return retrieved_chunks
