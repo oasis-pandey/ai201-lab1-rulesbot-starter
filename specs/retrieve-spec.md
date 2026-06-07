@@ -55,7 +55,15 @@ Results should be ordered from most to least relevant (lowest to highest distanc
 *Sketch out what one item in your return list looks like as a concrete example. Where does each field come from in the query results?*
 
 ```
-[your answer here]
+One example is given below:
+[
+    {
+        "text": "The king can move just one step",
+        "game": "Catan",
+        "distance": 0.3
+    }
+]
+Each field comes from the ChromaDB. It returns a parallel list of document, metadatas and distanaces of chunks closest to the user query.
 ```
 
 ---
@@ -65,7 +73,9 @@ Results should be ordered from most to least relevant (lowest to highest distanc
 *`_collection.query()` returns nested lists. Describe what index you need to access to get the actual list of results for a single query, and why the nesting exists.*
 
 ```
-[your answer here]
+You need to access index [0] for each result type: documents[0], metadatas[0], distances[0].
+
+The nesting exists because ChromaDB's query() method accepts multiple queries at once and returns results for all of them. Since each result type is a list of lists (one inner list per query), you get nested lists even when querying with just one query string. With only one query, accessing [0] unwraps the first (and only) set of results to give you the actual chunks and their metadata.
 ```
 
 ---
@@ -75,7 +85,17 @@ Results should be ordered from most to least relevant (lowest to highest distanc
 *Will you filter out results above a certain distance score, or return all `n_results` regardless of how relevant they are? What are the tradeoffs of each approach?*
 
 ```
-[your answer here]
+Return all n_results regardless of distance score.
+
+Tradeoff of filtering by threshold:
+  Pro: Only includes high-quality, relevant chunks; avoids misleading weak matches
+  Con: Might return 0 results if nothing passes the threshold, leaving generate_response() with no context
+
+Tradeoff of returning all n_results:
+  Pro: Always has some context to work with; lets generate_response() decide relevance
+  Con: Poor matches could add noise; less grounded answers if bad results are used
+
+For a rules bot, always having context is safer than returning nothing. The generate_response() function can then filter or warn about low-relevance results if needed.
 ```
 
 ---

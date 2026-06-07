@@ -116,11 +116,11 @@ handle these cases better, at the cost of more implementation complexity.
 **Actual chunk count produced across all 8 rule books:**
 
 ```
-[your answer here]
+149 chunks.
 ```
 
 **One thing that surprised you or didn't match your expectations:**
 
 ```
-[your answer here]
+I was first confused why there is no embedding call to chromaDB in chunk_documents() inside ingest.py but later I used claude to figure it out and it says that the _collection object calls the embedder implicitly. So, this was a good
 ```
